@@ -6,6 +6,9 @@ export function request(config){
 		})
 		//2.axios拦截器
 		instance.interceptors.request.use(config =>{
+			// console.log(config)
+			// 为请求头对象,添加token验证的Authorization字段
+			config.headers.Authorization = window.sessionStorage.getItem('token')
 			return config
 			//return config
 		},err =>{
