@@ -41,7 +41,7 @@ export function userLookUp(id){
 // 提交修改信息
 export function userEditPut(editFrom){
 	return request({
-		url:`users/${id}`,
+		url:`/users/${editFrom.id}`,
 		method:'put',
 		data:{
 			email:editFrom.email,
@@ -55,5 +55,12 @@ export function deleteUser(id){
 	return request({
 		url:`/users/${id}`,
 		method:'delete'
+	})
+}
+
+export function deliverUser(id){
+	return request({
+		url:`/users/${id}/role`,
+		method:'put'
 	})
 }

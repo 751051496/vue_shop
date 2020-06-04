@@ -39,8 +39,8 @@
 						<!-- 删除 -->
 						<el-button type="danger" icon="el-icon-delete" size="mini" @click="removeUsersById(scope.row.id)"></el-button>
 						<!-- 设置 -->
-						<el-tooltip class="item" effect="dark" content="分配角色" placement="top" :enterable="false">
-						  <el-button type="warning" icon="el-icon-setting" size="mini" ></el-button>
+						<el-tooltip class="item" effect="dark" content="分配角色" placement="top" :enterable="false" >
+						  <el-button type="warning" icon="el-icon-setting" size="mini" @click="setRole(scope.row)" ></el-button>
 						</el-tooltip>
 						
 					</template>
@@ -78,7 +78,7 @@
 		  <!-- 底部区 -->
 		  <span slot="footer" class="dialog-footer">
 			<el-button @click="addDialogVisible = false">取 消</el-button>
-			<el-button type="primary" @click="editUserInfo">确 定</el-button>
+			<el-button type="primary" @click="addUser">确 定</el-button>
 		  </span>
 		</el-dialog>
 		
@@ -102,7 +102,26 @@
 		  </el-form>
 		  <span slot="footer" class="dialog-footer">
 			<el-button @click="addEditDialogVisible = false">取 消</el-button>
-			<el-button type="primary" @click="addEditDialogVisible = false">确 定</el-button>
+			<el-button type="primary" @click="editUserInfo">确 定</el-button>
+		  </span>
+		</el-dialog>
+		<!-- 分配角色的对话框 -->
+		<el-dialog
+		  title="分配角色"
+		  :visible.sync="setRoleVisible"
+		  width="50%">
+		  <div>
+			  <p>当前的用户:{{userinfo.username}}</p>
+			  <p>当前的角色:{{userinfo.role_name}}</p>
+			  <p>分配新角色:
+				<el-select v-model="selectedRoleId" placeholder="请选择">
+					<el-option v-for="item in rolesList" :key="item.id" :label="item.roleName" :value="item.id"></el-option>
+				</el-select>
+			  </p>
+		  </div>
+		  <span slot="footer" class="dialog-footer">
+			<el-button @click="setRoleVisible = false">取 消</el-button>
+			<el-button type="primary" @click="saveRoleInfo">确 定</el-button>
 		  </span>
 		</el-dialog>
 	</div>
@@ -111,7 +130,8 @@
 
 
 <script>
-	import {users,changestate,usersAddInfo,userLookUp,userEditPut,deleteUser} from '../../network/users.js'
+	import {users,changestate,usersAddInfo,userLookUp,userEditPut,deleteUser,deliverUser} from '../../network/users.js'
+	import {getRoles} from '../../network/right.js'
   export default{
  	name:'Users',
 	data(){
@@ -143,6 +163,14 @@
 			addDialogVisible:false,
 			// 修改用户对话框
 			addEditDialogVisible:false,
+			// 分配角色对话框的显示与隐藏
+			setRoleVisible:false,
+			userinfo:{},
+			// 所有角色的数据列表
+			rolesList:[],
+			selectedRoleId:'',
+			
+			
 			// 查询用户信息对象保存
 			editFrom:{},
 			editFromRules:{
@@ -236,7 +264,7 @@
 		async showEditDialog(id){
 			// console.log(id)
 			const res = await userLookUp(id)
-			console.log(res)
+			// console.log(res)
 			if(res.meta.status !== 200){return this.$message.error('查询用户信息失败')}
 			this.editFrom = res.data
 			this.addEditDialogVisible = true
@@ -282,7 +310,29 @@
 			this.getUserList()
 			
 		},
-		// 
+		// 展示分配角色的对话框
+		async setRole(userinfo){
+			this.userinfo = userinfo
+			// 在展示对话框之前获取所有角色列表
+			const res = await getRoles()
+			if(res.meta.status !== 200){return this.$message.error('获取角色列表失败')}
+			
+			this.rolesList = res.data
+			this.setRoleVisible = true
+		},
+		// 点击按钮,分配角色
+		async saveRoleInfo(){
+			if(!this.selectedRoleId){
+				return this.$message.error('请选择要分配的角色')
+			}
+			
+			const res =await deliverUser(this.userinfo.id)
+			if(res.meta.status !== 200){
+				return this.$message.error('更新角色')
+			}
+			
+			this.$message.success('分配角色成功')
+		}
 	}
 
   }
